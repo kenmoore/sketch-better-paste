@@ -1,0 +1,72 @@
+// Better Paste Plugin (ctrl v)
+/*
+  Author: Ken Moore
+  Date: 17 January 2015
+  Version: 0.1
+
+  Paste like it was meant to be--into the artboard you're viewing.
+  Better Paste determines which artboard is centered in your view
+  (or closest to center) and pastes into that artboard, not some
+  random artboard far from away.
+
+  You're welcome ;)
+*/
+
+
+
+// Main
+page = [doc currentPage];
+artboards = [page artboards];
+
+if ([artboards count] > 0) {
+  // Code below gets the in-view artboard (closest to the center of the viewport)
+
+  // Get origin of the canvas and current zoom factor
+  scrollOrigin = [doc scrollOrigin];
+  zoomValue = [doc zoomValue];
+
+  // Get the dimensions of the viewport
+  view = [doc currentView];
+  frame = [view frame];
+  viewportWidth = frame.size.width;
+  viewportHeight = frame.size.height;
+
+  // Calculate the coordinates of the midpoint of the viewport
+  centerX = (viewportWidth / 2 - scrollOrigin.x) / zoomValue;
+  centerY = (viewportHeight / 2 - scrollOrigin.y) / zoomValue;
+
+  // See which artboard (if any) includes the center point of the viewport
+  var inViewArtboardIndex = 0;  // initialize to the first artboard
+  var minDistance = 1000000;  // to calculate closest artboard in case none include the center point of the viewport
+  for(var i = 0; i < [artboards count]; i++) {
+    artboard = [artboards objectAtIndex: i];
+    artboardRect = [artboard absoluteRect];
+
+    // If artboard contains center point, we're done searching
+    if ([artboardRect x] < centerX && [artboardRect x] + [artboardRect width] > centerX && [artboardRect y] < centerY && [artboardRect y] + [artboardRect height] > centerY) {
+        inViewArtboardIndex = i;
+        break;
+    } else {
+      // Calculate sum of x offset and y offset from the center of the artboard to the center of the viewport
+      distance = Math.abs(centerX - ([artboardRect x] + [artboardRect width] / 2)) + Math.abs(centerY - ([artboardRect y] + [artboardRect height] / 2));
+
+      // If it's shorter than the current minimum, then it's the new choice for nearest
+      if (distance < minDistance) {
+        inViewArtboardIndex = i;
+        minDistance = distance;
+      }
+    }
+  }
+
+  // Deselect all layers
+  [page deselectAllLayers];
+
+  // Select the in-view artboard
+  artboard = [artboards objectAtIndex: inViewArtboardIndex];
+  [artboard setIsSelected: true];
+}
+
+// Paste the item(s) in the clipboard
+[NSApp sendAction:'paste:' to:nil from:doc];
+
+
