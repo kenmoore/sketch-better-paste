@@ -1,4 +1,4 @@
-# sketch-better-paste
+# Better Paste plugin for Sketch
 Paste like it was meant to be--into the artboard you're viewing.
 
 Better Paste determines which artboard is centered in your view
