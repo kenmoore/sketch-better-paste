@@ -1,39 +1,42 @@
 // Better Paste Plugin (ctrl v)
 /*
   Author: Ken Moore
-  Date: 17 January 2015
-  Version: 0.1
+  Date: 19 January 2015
+  Version: 0.2
 
-  Paste like it was meant to be--into the artboard you're viewing.
-  Better Paste determines which artboard is centered in your view
-  (or closest to center) and pastes into that artboard, not some
-  random artboard far away.
-
-  You're welcome ;)
+  Paste like it was meant to be--into the area you're viewing.
+  Better Paste determines which area of which artboard is centered 
+  in your view and pastes right there, not some at some random
+  area or artboard far away.
 */
 
+// Global variables
+var scrollOrigin;
+var zoomValue;
+var page;
+var artboards;
 
-
-// Main
-page = [doc currentPage];
-artboards = [page artboards];
-
-if ([artboards count] > 0) {
-  // Code below gets the in-view artboard (closest to the center of the viewport)
-
+function initEnvironment() {
   // Get origin of the canvas and current zoom factor
   scrollOrigin = [doc scrollOrigin];
   zoomValue = [doc zoomValue];
 
+  page = [doc currentPage];
+  artboards = [page artboards];
+}
+
+
+// Get the in-view artboard (closest to the center of the viewport)
+function getInViewArtboard() {
   // Get the dimensions of the viewport
   view = [doc currentView];
-  frame = [view frame];
-  viewportWidth = frame.size.width;
-  viewportHeight = frame.size.height;
+  viewportFrame = [view frame];
+  viewportWidth = viewportFrame.size.width;
+  viewportHeight = viewportFrame.size.height;
 
-  // Calculate the coordinates of the midpoint of the viewport
-  centerX = (viewportWidth / 2 - scrollOrigin.x) / zoomValue;
-  centerY = (viewportHeight / 2 - scrollOrigin.y) / zoomValue;
+  // Calculate the coordinates of the midpoint of the viewport (in Viewport coordinate space)
+  viewportCenterX = (viewportWidth / 2 - scrollOrigin.x) / zoomValue;
+  viewportCenterY = (viewportHeight / 2 - scrollOrigin.y) / zoomValue;
 
   // See which artboard (if any) includes the center point of the viewport
   var inViewArtboardIndex = 0;  // initialize to the first artboard
@@ -43,12 +46,12 @@ if ([artboards count] > 0) {
     artboardRect = [artboard absoluteRect];
 
     // If artboard contains center point, we're done searching
-    if ([artboardRect x] < centerX && [artboardRect x] + [artboardRect width] > centerX && [artboardRect y] < centerY && [artboardRect y] + [artboardRect height] > centerY) {
+    if ([artboardRect x] < viewportCenterX && [artboardRect x] + [artboardRect width] > viewportCenterX && [artboardRect y] < viewportCenterY && [artboardRect y] + [artboardRect height] > viewportCenterY) {
         inViewArtboardIndex = i;
         break;
     } else {
       // Calculate sum of x offset and y offset from the center of the artboard to the center of the viewport
-      distance = Math.abs(centerX - ([artboardRect x] + [artboardRect width] / 2)) + Math.abs(centerY - ([artboardRect y] + [artboardRect height] / 2));
+      distance = Math.abs(viewportCenterX - ([artboardRect x] + [artboardRect width] / 2)) + Math.abs(viewportCenterY - ([artboardRect y] + [artboardRect height] / 2));
 
       // If it's shorter than the current minimum, then it's the new choice for nearest
       if (distance < minDistance) {
@@ -58,15 +61,83 @@ if ([artboards count] > 0) {
     }
   }
 
-  // Deselect all layers
-  [page deselectAllLayers];
-
-  // Select the in-view artboard
-  artboard = [artboards objectAtIndex: inViewArtboardIndex];
-  [artboard setIsSelected: true];
+  return [artboards objectAtIndex: inViewArtboardIndex];;
 }
 
-// Paste the item(s) in the clipboard
-[NSApp sendAction:'paste:' to:nil from:doc];
+// Main
+initEnvironment();
+
+if ([artboards count] == 0) {
+  // Paste the item(s) in the clipboard
+  [NSApp sendAction:'paste:' to:nil from:doc];
+} else {  
+  // Get the artboard nearest to the current view
+  var targetArtboard = getInViewArtboard();
+
+  // Compare inViewArtboard to selected artboard, only change artboard selection if different
+  if (targetArtboard != [page currentArtboard]) {
+    // Deselect all layers
+    [page deselectAllLayers];
+
+    // Select the in-view artboard
+    [targetArtboard setIsSelected: true];
+  }
+
+  // Paste the item(s) in the clipboard
+  [NSApp sendAction:'paste:' to:nil from:doc];
+
+  // get bounding rect for pasted selection
+  var leftmost, rightmost, topmost, bottommost;
+  selectedLayers = doc.selectedLayers();
+
+  for (var i = 0; i < selectedLayers.length(); i++) {
+    layer = selectedLayers[i];
+    frame = [layer  frame];
+
+    if (i == 0 || (frame.x() < leftmost)) {
+      leftmost = frame.x();
+    }
+
+    if (i == 0 || (frame.x() + frame.width() > rightmost)) {
+      rightmost = frame.x() + frame.width();
+    }
+
+    if (i == 0 || (frame.y() < topmost)) {
+      topmost = frame.y();
+    }
+
+    if (i == 0 || (frame.y() + frame.height() > bottommost)) {
+      bottommost = frame.y() + frame.height();
+    }
+  }
+
+  // get bounding rect for viewport
+  artboardRect = [targetArtboard absoluteRect];
+  viewportX1 = (viewportFrame.origin.x - scrollOrigin.x) / zoomValue - [artboardRect x];
+  viewportY1 = (viewportFrame.origin.y - scrollOrigin.y) / zoomValue - [artboardRect y];
+  viewportX2 = (viewportFrame.origin.x + viewportWidth / zoomValue) - scrollOrigin.x / zoomValue - [artboardRect x];
+  viewportY2 = (viewportFrame.origin.y + viewportHeight / zoomValue) - scrollOrigin.y / zoomValue - [artboardRect y];
 
 
+  // If the pasted content is entirely out of the viewport, move it to be centered within the viewport
+  // (the system will paste in the center of the artboard if the bounding box of the default paste location
+  //   extends out of the current viewport)
+  if (rightmost < viewportX1 || bottommost < viewportY1 || leftmost > viewportX2 || topmost > viewportY2) {
+    // move all selected layers by the offset
+    var xOffset = (viewportX1 - (leftmost + rightmost) / 2 + (viewportWidth / zoomValue) / 2);
+    var yOffset = (viewportY1 - (bottommost + topmost) / 2 + (viewportHeight / zoomValue) / 2);
+    for(var i = 0; i < selectedLayers.length(); i++) {
+      layer = selectedLayers[i];
+      frame = [layer frame];
+      [frame addX: xOffset];
+      [frame addY: yOffset];
+    }
+  }
+
+}
+
+
+// zoomToFitRect has this lame outcome: if switching to a new artboard it forces zoom to the center of the artboard.
+// So using centerRect instead
+var originalViewportRect = MSRect.rectWithRect(NSMakeRect(-scrollOrigin.x / zoomValue, -scrollOrigin.y / zoomValue, viewportWidth / zoomValue, viewportHeight / zoomValue));
+[[doc currentView] centerRect: originalViewportRect];
