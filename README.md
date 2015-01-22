@@ -7,7 +7,8 @@ Press Ctrl+V and Better Paste determines which area of which artboard
 is centered in your view and pastes right there, not some at some random
 area or artboard far away.
 
-You're welcome ;)
+PRO TIP: Go into System Preferences for Keyboard Shortcuts and reassign the Ctrl+V combo to activate Better Paste.  Life is good!
+
 
 ## Installation
 1. [Download Better Paste.sketchplugin.](https://github.com/kenmoore/sketch-better-paste/archive/master.zip)
