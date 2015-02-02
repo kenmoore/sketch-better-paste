@@ -7,7 +7,7 @@ Press Ctrl+V and Better Paste determines which area of which artboard
 is centered in your view and pastes right there, not some at some random
 area or artboard far away.
 
-PRO TIP: Go into System Preferences for Keyboard Shortcuts and reassign the Ctrl+V combo to activate Better Paste.  Life is good!
+PRO TIP: Go into System Preferences for Keyboard Shortcuts and reassign the native Cmd+V combo to activate Better Paste.
 
 
 ## Installation
