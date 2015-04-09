@@ -139,5 +139,5 @@ if ([artboards count] == 0) {
 
 // zoomToFitRect has this lame outcome: if switching to a new artboard it forces zoom to the center of the artboard.
 // So using centerRect instead
-var originalViewportRect = MSRect.rectWithRect(NSMakeRect(-scrollOrigin.x / zoomValue, -scrollOrigin.y / zoomValue, viewportWidth / zoomValue, viewportHeight / zoomValue));
+var originalViewportRect = NSMakeRect(-scrollOrigin.x / zoomValue, -scrollOrigin.y / zoomValue, viewportWidth / zoomValue, viewportHeight / zoomValue);
 [[doc currentView] centerRect: originalViewportRect];
