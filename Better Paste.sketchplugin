@@ -1,8 +1,8 @@
 // Better Paste Plugin (ctrl v)
 /*
   Author: Ken Moore
-  Date: 19 January 2015
-  Version: 0.2
+  Date: 22 October 2015
+  Version: 0.3
 
   Paste like it was meant to be--into the area you're viewing.
   Better Paste determines which area of which artboard is centered 
@@ -15,6 +15,7 @@ var scrollOrigin;
 var zoomValue;
 var page;
 var artboards;
+
 
 function initEnvironment() {
   // Get origin of the canvas and current zoom factor
@@ -67,15 +68,31 @@ function getInViewArtboard() {
 // Main
 initEnvironment();
 
-if ([artboards count] == 0) {
-  // Paste the item(s) in the clipboard
+
+// Determine if the user is currently editing a text field
+var userIsEditingText = false;
+var selectedLayer = null;
+if (selection) {
+  var selectedLayer = selection.firstObject();
+  if (selectedLayer && selectedLayer.isKindOfClass(MSTextLayer) && [selectedLayer isEditingText]) {
+    userIsEditingText = 1;
+  }
+}
+
+
+if ([artboards count] == 0 || userIsEditingText) {
+  // if the doc has no artboards OR the user is editing a text field, just
+  // paste the item(s) in the clipboard using the standard Paste action
   [NSApp sendAction:'paste:' to:nil from:doc];
 } else {  
   // Get the artboard nearest to the current view
   var targetArtboard = getInViewArtboard();
 
   // Compare inViewArtboard to selected artboard, only change artboard selection if different
-  if (targetArtboard != [page currentArtboard]) {
+  // or if no layers are selected (as can happen when you tab away and back)
+  var currentArtboardIsTarget = (targetArtboard == [page currentArtboard]);
+
+  if (!currentArtboardIsTarget || !selectedLayer) {
     // Deselect all layers
     [page deselectAllLayers];
 
