@@ -1,0 +1,22 @@
+{
+    "name" : "Better Paste",
+    "description" : "Paste like it was meant to be--into the area you're viewing.",
+    "author" : "Ken Moore",
+    "authorEmail" : "kenmoore@gmail.com",
+    "version" : "1.0",
+    "identifier" : "com.kenmoore.sketch.betterpaste",
+
+    "commands" : [
+    {
+      "script" : "Better Paste.js",
+      "name" : "Better Paste",
+      "shortcut": "ctrl v",
+      "handler" : "betterPaste",
+      "identifier" : "betterpaste"
+    }
+  ],
+  "menu": {
+      "isRoot" : true,
+      "items": [ "betterpaste" ]
+  }
+}
