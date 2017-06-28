@@ -21,7 +21,7 @@ var selection;
 
 var betterPaste = function(context) {
 
-	initEnvironment();
+	initEnvironment(context);
 
 	// Determine if the user is currently editing a text field
 	var userIsEditingText = false;
@@ -112,10 +112,10 @@ var betterPaste = function(context) {
 	[[doc currentView] centerRect: originalViewportRect];
 }
 
-function initEnvironment() {
+function initEnvironment(context) {
   // Get origin of the canvas and current zoom factor
-  doc = NSDocumentController.sharedDocumentController().currentDocument() || NSDocumentController.sharedDocumentController().documents().firstObject();
-  selection = doc == null ? nil : doc.findSelectedLayers()
+  doc = context.document;
+  selection = context.selection;
   scrollOrigin = [doc scrollOrigin];
   zoomValue = [doc zoomValue];
 
