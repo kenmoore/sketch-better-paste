@@ -47,10 +47,10 @@ var betterPaste = function(context) {
 
 	  if (!currentArtboardIsTarget || !selectedLayer) {
 	    // Deselect all layers
-	    [page deselectAllLayers];
+		context.api().selectedDocument.selectedPage.selectedLayers.clear();
 
 	    // Select the in-view artboard
-	    [targetArtboard setIsSelected: true];
+ 		targetArtboard.select_byExpandingSelection(true, true);
 	  }
 
 	  // Paste the item(s) in the clipboard
