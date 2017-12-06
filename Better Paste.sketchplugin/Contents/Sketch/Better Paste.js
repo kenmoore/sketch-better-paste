@@ -109,7 +109,7 @@ var betterPaste = function(context) {
 	// zoomToFitRect has this lame outcome: if switching to a new artboard it forces zoom to the center of the artboard.
 	// So using centerRect instead
 	var originalViewportRect = NSMakeRect(-scrollOrigin.x / zoomValue, -scrollOrigin.y / zoomValue, viewportWidth / zoomValue, viewportHeight / zoomValue);
-	[[doc currentView] centerRect: originalViewportRect];
+	[[doc contentDrawView] centerRect: originalViewportRect];
 }
 
 function initEnvironment(context) {
@@ -127,7 +127,7 @@ function initEnvironment(context) {
 // Get the in-view artboard (closest to the center of the viewport)
 function getInViewArtboard() {
   // Get the dimensions of the viewport
-  view = [doc currentView];
+  view = [doc contentDrawView];
   viewportFrame = [view frame];
   viewportWidth = viewportFrame.size.width;
   viewportHeight = viewportFrame.size.height;

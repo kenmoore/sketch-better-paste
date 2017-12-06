@@ -3,7 +3,7 @@
     "description" : "Paste like it was meant to be--into the area you're viewing.",
     "author" : "Ken Moore",
     "authorEmail" : "kenmoore@gmail.com",
-    "version" : "1.3",
+    "version" : "1.4",
     "identifier" : "com.kenmoore.sketch.betterpaste",
 
     "commands" : [
